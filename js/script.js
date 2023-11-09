@@ -1,7 +1,13 @@
-//импорт функции проверки введенной суммы
+//получение функции проверки введенной суммы
 import { convertStringNumber } from "./convertStringNumber.js";
-//импорт билиотеки со скроллбаром
+//получение функции рендеринга данных
+import { renderReport } from "./renderReport.js";
+//получение билиотеки со скроллбаром
 import {OverlayScrollbars} from "./overlayscrollbars.esm.min.js";
+//получение функции getData
+import { getData } from "./getData.js";
+
+
 
 //форма
 const financeForm=document.querySelector('.finance__form');
@@ -12,9 +18,8 @@ const financeAmount=document.querySelector('.finance__amount');
 const financePopUp=document.querySelector('.report');
 //тогл открытия модального окна
 const financeOpenButton=document.querySelector('.finance__report');
-//тогл закрытия модального окна
-const financeCloseButton=document.querySelector('.report__close');
-
+//форма
+const reportDates=document.querySelector('.report__dates');
 
 
 let amount=0;
@@ -34,31 +39,45 @@ financeForm.addEventListener('submit',(evt)=>{
   }
   financeAmount.textContent=`${amount.toLocaleString()}₽`;
 });
+
 //обработчик события при клике (открыть)
-financeOpenButton.addEventListener('click',()=>{
-  financePopUp.classList.add('report__open');
+financeOpenButton.addEventListener('click',async ()=>{
+  financePopUp.classList. add('report__open');
   //обработчик события при клике (закрыть через ESC)
   document.addEventListener('keydown',(evt)=>{
   if(evt.keyCode===27){
     financePopUp.classList.remove('report__open');
   }
   });
-  
   //обработчик событий при клике на любую область кроме модального окна + тогла закрытия + тогла открытия
   document.addEventListener('click',({target})=>{
    if(target.closest('.report__close') || (!target.closest('.report') && !target.closest('.finance__report'))){
     financePopUp.classList.remove('report__open'); 
   }
   }); 
+  
+  const data=await getData("/test");
+  renderReport(data);
 });
-
-
-
-
-
 //инициализация скролбара
 OverlayScrollbars(financePopUp,{
   overflow: {
     x: 'hidden',
   },
+});
+//обработчик события на форме
+reportDates.addEventListener('submit',async (evt)=>{
+ evt.preventDefault();
+ const formData=Object.fromEntries(new FormData(reportDates));
+ const searchParams=new URLSearchParams();
+  if(formData.startDate){
+    searchParams.append('startDate',formData.startDate);
+  }
+  if(formData.endDate){
+    searchParams.append('endDate',formData.endDate);
+  }
+  const queryString=searchParams.toString();
+ const url=queryString ? `/test?${queryString}` : "/test";
+ const data=await getData(url);
+ renderReport(data);
 });
